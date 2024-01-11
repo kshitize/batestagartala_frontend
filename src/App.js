@@ -8,7 +8,7 @@ function App() {
   }/${current.getFullYear()}`;
 
   const time = `${current.getHours()}:${current.getMinutes()}:${current.getSeconds()}`;
-  let checkedValuesString, randomNameArrayString;
+  let checkedValuesString, randomNameArrayString, randomNameMailString;
   
   const [userData, setUserData] = useState({
     date:date,
@@ -17,6 +17,8 @@ function App() {
     randomNameArrayString: ""
   })
   const [checkedValues, setValue] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [mail, setMail] = useState([]);
   const [randomNameArray, setRandomNamesArray] = useState([]);
   const [isDisabled, setIsDisabled] = useState(true);
   const [concatenatedString, setconcatenatedString] = useState("");
@@ -28,12 +30,22 @@ function App() {
   
 
   const handleChange = (event) => {
-    const {value,checked} = event.target;
+
+    // console.log(event);
+    // console.log(event.target);
+    const {value,checked,name} = event.target;
+    // console.log(value, checked, name);
     if(checked){
       setValue(pre=>[...pre,value]);  
+      setMail(pre=>[...pre,name]); 
+      // console.log(checkedValues) 
+      // console.log(mail) 
     }else{
       setValue(pre=>{
         return[...pre.filter(names=>names!==value)]
+      })
+      setMail(pre=>{
+        return[...pre.filter(names=>names!==name)]
       })
     }
   
@@ -63,22 +75,39 @@ function App() {
     // }
 
     const shuffled = checkedValues.slice(); // Create a copy to avoid modifying the original array
+    const shuffledMail = mail.slice(); // Create a copy to avoid modifying the original array
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    let randomNumber = Math.random()
+    const j = Math.floor(randomNumber * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [shuffledMail[i], shuffledMail[j]] = [shuffledMail[j], shuffledMail[i]];
   }
+  // for (let i = shuffled.length - 1; i > 0; i--) {
+  //   const j = Math.floor(Math.random() * (i + 1));
+  //   [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  // }
     
     setRandomNamesArray(shuffled.slice(0,numberOfRandomNames))
+    setMail(shuffledMail.slice(0,numberOfRandomNames))
+    // console.log(checkedValues) 
+    //   console.log(mail) 
+    //   console.log(randomNameArray) 
     // console.log(randomNames);
   }
   
 
   const submitData = async (event) => {
     event.preventDefault();
-    console.log("checked values",checkedValues)
-    console.log("random names",randomNameArray)
+    setLoading(true);
+    // console.log("checked values",checkedValues)
+    // console.log("random names",randomNameArray)
+    // console.log("random mail",mail)
     checkedValuesString = checkedValues.join(',')
     randomNameArrayString = randomNameArray.join(',')
+    randomNameMailString = mail.join(',')
+    // console.log("checked values",checkedValues)
+    // console.log("random names",randomNameArray)
+    // console.log("random mail",mail)
     // console.log("checkedvaluestring",checkedValuesString)
     // console.log("randomnamearraystring",randomNameArrayString)
     // const { date, time, item1, item2, item3, item4, item5 } = userData;
@@ -95,12 +124,21 @@ function App() {
     );
 
     if (res) {
+      const res2 = await fetch("https://mailserverba.onrender.com/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ mail}),
+        }
+      );
       // console.log(res)
-      console.log(randomNameArray.length);
+      // console.log(randomNameArray.length);
       // setconcatenatedString(randomNameArray.join('\n'));
       var concatenatedString = randomNameArray.join(' , ');
       
-      console.log("this is ",concatenatedString);
+      // console.log("this is ",concatenatedString);
       let my_text = "Names Selected for BA " + date + " "+ concatenatedString;
       alert("Data Stored");
       setIsDisabled(!isDisabled);
@@ -108,6 +146,7 @@ function App() {
       let api = new XMLHttpRequest();
       api.open("GET",url,true);
       api.send();
+      
       window.location.reload();
     } else {
       alert("Please fill the data");
@@ -151,6 +190,7 @@ function App() {
             type="checkbox"
             id="n1"
             value="kshitize"
+            name="kshitize@aai.aero"
             onChange={handleChange}
           />
           <label className="form-check-label fs-4" htmlFor="n1">
@@ -165,6 +205,7 @@ function App() {
             type="checkbox"
             id="n2"
             value="javed"
+            name="explorerkd@gmail.com"
             onChange={handleChange}
           />
           <label className="form-check-label fs-4" htmlFor="n2">
@@ -179,6 +220,7 @@ function App() {
             type="checkbox"
             id="n3"
             value="prashant"
+            name="kshitizedimri@gmail.com"
             onChange={handleChange}
           />
           <label className="form-check-label fs-4" htmlFor="n3">
@@ -192,6 +234,7 @@ function App() {
             type="checkbox"
             id="n4"
             value="hari"
+            name="hari@aai.aero"
             onChange={handleChange}
           />
           <label className="form-check-label fs-4" htmlFor="n4">
@@ -205,6 +248,7 @@ function App() {
             type="checkbox"
             id="n5"
             value="kunal"
+            name="kunal@aai.aero"
             onChange={handleChange}
           />
           <label className="form-check-label fs-4" htmlFor="n5">
@@ -235,8 +279,13 @@ function App() {
         <br></br>
         <br></br>
         {!isDisabled && (<button type="submit" className="btn btn-primary" onClick={submitData} disabled={isDisabled}>
-          Submit
+        {loading ? <div className="spinner-border text-warning" role="status">
+  <span className="visually-hidden">Loading...</span>
+</div> : 'Submit'}
         </button>)}
+        {/* {!isDisabled && (<button type="submit" className="btn btn-primary" onClick={submitData} disabled={isDisabled}>
+          Submit
+        </button>)} */}
       </form>
       
     </>
